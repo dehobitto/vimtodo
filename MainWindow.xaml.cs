@@ -12,13 +12,13 @@ namespace TaskManager;
 public partial class MainWindow
 {
     //Бінди
-    private const Key MainwindowAdd = Key.I; // Додати таск
-    private const Key MainwindowRemove = Key.D; // Прибрати таск
-    private const Key MainwindowControlUp = Key.J; // Вгору по таскам
-    private const Key MainwindowControlDown = Key.K; // Вниз по таскам
-    private const Key MainwindowChangetask = Key.C; // Змінити таск
-    private const Key MainwindowMarktask = Key.M; // Помітити таск зробленим
-    private const Key MainwindowAddDescription = Key.E; // Помітити таск зробленим
+    private const Key MainwindowAdd = Key.I;
+    private const Key MainwindowRemove = Key.D;
+    private const Key MainwindowControlUp = Key.J;
+    private const Key MainwindowControlDown = Key.K; 
+    private const Key MainwindowChangetask = Key.C;
+    private const Key MainwindowMarktask = Key.M;
+    private const Key MainwindowAddDescription = Key.E; 
     
     List<Task>? tasks = new List<Task>();
 
@@ -27,11 +27,11 @@ public partial class MainWindow
         InitializeComponent();
         Loaded += (sender, e) => 
         {
-            UpdateTasks(); //Підгружаємо таски якщо вони є збережені
-            this.Activate(); //Фокус на створене вікно
-            this.Focus(); //Фокус на створене вікно
+            UpdateTasks(); 
+            this.Activate(); 
+            this.Focus(); 
             
-            if (TaskList != null) //Якщо є таски, то виділяємо перший
+            if (TaskList != null) 
             {
                 TaskList.SelectedIndex = 0;
             }
@@ -39,7 +39,7 @@ public partial class MainWindow
         LoadKeys();
     }
 
-    void MainWindow_AddTask(object sender, KeyEventArgs e) //Метод що оброблює натискання клавіші
+    void MainWindow_AddTask(object sender, KeyEventArgs e) 
     {
         if (e.Key == MainwindowAdd) 
         {
@@ -55,7 +55,7 @@ public partial class MainWindow
         }
     }
     
-    void MainWindow_RemoveTask(object sender, KeyEventArgs e) //Метод що оброблює натискання клавіші та видалення тасків
+    void MainWindow_RemoveTask(object sender, KeyEventArgs e) 
     {
         if (e.Key == MainwindowRemove && TaskList.SelectedItem != null)
         {
@@ -80,7 +80,7 @@ public partial class MainWindow
         }
     }
     
-    void MainWindow_Controls(object sender, KeyEventArgs e) //Метод що оброблює натискання клавіші
+    void MainWindow_Controls(object sender, KeyEventArgs e) 
     {
         if (e.Key == MainwindowControlDown)
         {
@@ -99,7 +99,7 @@ public partial class MainWindow
         }
     }
     
-    void MainWindow_ChangeTask(object sender, KeyEventArgs e) //Метод що оброблює натискання клавіші
+    void MainWindow_ChangeTask(object sender, KeyEventArgs e)
     {
         if (e.Key == MainwindowChangetask && TaskList.SelectedIndex >= 0)
         {
@@ -107,7 +107,7 @@ public partial class MainWindow
             e.Handled = true;
         }
     } 
-    void ChangeTask() //Метод що оброблює зміну тасків
+    void ChangeTask()
     {
         var inputDialog = new InputDialog();
         int i = TaskList.SelectedIndex;
@@ -182,7 +182,7 @@ public partial class MainWindow
         }
     }
     
-    void ShowInputDialog() //Відкриття вікна з вводом тексту 
+    void ShowInputDialog() 
     {
         var inputDialog = new InputDialog(); 
         if (inputDialog.ShowDialog() == true)
@@ -195,7 +195,7 @@ public partial class MainWindow
         }
     }
     
-    void SaveTasks() //Зберігання тасків у джсон
+    void SaveTasks()
     {
         string json = JsonSerializer.Serialize(tasks);
         File.WriteAllText("tasks.json", json);
@@ -226,26 +226,7 @@ public partial class MainWindow
         this.PreviewKeyDown += MainWindow_AddDesription; //Додаємо клавішу відмітити таск
     }
     
-    private void ShowDescriptionWindow(string text)
-    {
-        // Create an instance of the secondary window and pass the text
-        var descriptionWindow = new DescriptionWindow(text);
-
-        // Get the position of the main window
-        var mainWindowLeft = this.Left;
-        var mainWindowTop = this.Top;
-
-        // Set the size and position of the secondary window
-        descriptionWindow.Width = 480;
-        descriptionWindow.Height = 480;
-        descriptionWindow.Left = mainWindowLeft + this.ActualWidth; // Position to the right of the main window
-        descriptionWindow.Top = mainWindowTop;
-
-        // Show the secondary window
-        descriptionWindow.Show();
-    }
-    
-    protected override void OnClosed(EventArgs e) //Зберігання коли закривається програма
+    protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
         SaveTasks(); 

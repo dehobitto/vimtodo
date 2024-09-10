@@ -15,7 +15,6 @@ namespace TaskManager
         public DescriptionWindow(string text)
         {
             InitializeComponent();
-            // Set the initial text from the main window
             InputTextBox.Text = text;
             Loaded += DescriptionWindow_Loaded; 
             PreviewKeyDown += DescriptionWindow_Save; 
