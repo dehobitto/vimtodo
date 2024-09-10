@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -17,13 +18,16 @@ public partial class MainWindow
     private const Key MainwindowControlDown = Key.K; // Вниз по таскам
     private const Key MainwindowChangetask = Key.C; // Змінити таск
     private const Key MainwindowMarktask = Key.M; // Помітити таск зробленим
+    private const Key MainwindowAddDescription = Key.E; // Помітити таск зробленим
+    
+    List<Task>? tasks = new List<Task>();
 
     public MainWindow()
     {
         InitializeComponent();
         Loaded += (sender, e) => 
         {
-            LoadTasks(); //Підгружаємо таски якщо вони є збережені
+            UpdateTasks(); //Підгружаємо таски якщо вони є збережені
             this.Activate(); //Фокус на створене вікно
             this.Focus(); //Фокус на створене вікно
             
@@ -61,13 +65,14 @@ public partial class MainWindow
     }
     void RemoveTask()
     {
-        int delIndex = TaskList.SelectedIndex;
-        TaskList.Items.Remove(TaskList.SelectedItem);
+        int i = TaskList.SelectedIndex;
+        tasks.RemoveAt(i);
         SaveTasks();
+        UpdateTasks(i);
             
-        if (delIndex > 0)
+        if (i > 0)
         {
-            TaskList.SelectedIndex = delIndex - 1;
+            TaskList.SelectedIndex = i - 1;
         }
         else
         {
@@ -96,7 +101,7 @@ public partial class MainWindow
     
     void MainWindow_ChangeTask(object sender, KeyEventArgs e) //Метод що оброблює натискання клавіші
     {
-        if (e.Key == MainwindowChangetask)
+        if (e.Key == MainwindowChangetask && TaskList.SelectedIndex >= 0)
         {
             ChangeTask();
             e.Handled = true;
@@ -106,23 +111,23 @@ public partial class MainWindow
     {
         var inputDialog = new InputDialog();
         int i = TaskList.SelectedIndex;
-        inputDialog.InputText = (string?)TaskList.Items[i];
+        inputDialog.InputText = tasks[i].Title;
         
         if (inputDialog.ShowDialog() == true)
         {
             string? userInput = inputDialog.InputText;
             if (TaskList.SelectedItem != null)
             {
-                TaskList.Items[i] = (userInput);
-                TaskList.SelectedIndex = i;
+                tasks[i].Title = (userInput);
             }
-            SaveTasks(); 
+            SaveTasks();
+            UpdateTasks(i);
         }
     }
     
     void MainWindow_MarkTask(object sender, KeyEventArgs e) //
     {
-        if (e.Key == MainwindowMarktask)
+        if (e.Key == MainwindowMarktask && TaskList.SelectedIndex >= 0)
         {
             MarkTask();
             e.Handled = true;
@@ -133,22 +138,48 @@ public partial class MainWindow
         int i = TaskList.SelectedIndex;
         if (TaskList.SelectedItem != null)
         {
-            if (TaskList.Items[i]!.ToString()![0] != '+')
-            {
-                TaskList.Items[i] = "+ " + TaskList.Items[i];
-                TaskList.SelectedIndex = i;
-            }
-            else
-            {
-                // Тутт хз, воно працює так, а 
-                // TaskList.Items[i] = TaskList.Items[i].ToString().Substring(2, TaskList.Items[i].ToString().Length - 1);
-                // Не працює, сам метод видаляє два останніх символи в таску, щоб прибрати помітку (помічені таски відмічаються "+ "), тому потрібно видалити два останніх символи
-                TaskList.Items[i] = TaskList.Items[i].ToString().Substring(1, TaskList.Items[i].ToString().Length - 1);
-                TaskList.Items[i] = TaskList.Items[i].ToString().Substring(1, TaskList.Items[i].ToString().Length - 1);
-                TaskList.SelectedIndex = i;
-            }
+            Task task = (Task)TaskList.Items[i];
+            task.IsCompleted = !task.IsCompleted;
+            TaskList.Items[i] = task;
         }
         SaveTasks();
+        UpdateTasks(i);
+    }
+
+    void MainWindow_AddDesription(object sender, KeyEventArgs e)
+    {
+        if (e.Key == MainwindowAddDescription && TaskList.SelectedIndex >= 0)
+        {
+            AddDescription();
+            e.Handled = true;
+        }
+    }
+
+    void AddDescription()
+    {
+        int i = TaskList.SelectedIndex;
+        var descriptionWindow = new DescriptionWindow(tasks[i].Description);
+
+        // Get the position of the main window
+        var mainWindowLeft = this.Left;
+        var mainWindowTop = this.Top;
+
+        // Set the size and position of the secondary window
+        descriptionWindow.Width = 480;
+        descriptionWindow.Height = 480;
+        descriptionWindow.Left = mainWindowLeft + this.ActualWidth + 20; // Position to the right of the main windows
+        descriptionWindow.Top = mainWindowTop;
+        
+        if (descriptionWindow.ShowDialog() == true)
+        {
+            string? userInput = descriptionWindow.InputText;
+            if (TaskList.SelectedItem != null)
+            {
+                tasks[i].Description = (userInput);
+            }
+            SaveTasks();
+            UpdateTasks(i);
+        }
     }
     
     void ShowInputDialog() //Відкриття вікна з вводом тексту 
@@ -157,36 +188,32 @@ public partial class MainWindow
         if (inputDialog.ShowDialog() == true)
         {
             string? userInput = inputDialog.InputText;
-            TaskList.Items.Add(userInput);
+            Task newTask = new Task(userInput);
+            tasks.Add(newTask);
+            TaskList.Items.Add(newTask);
             SaveTasks(); 
         }
     }
     
     void SaveTasks() //Зберігання тасків у джсон
     {
-        var tasks = new List<string>();
-        foreach (var item in TaskList.Items)
-        {
-            tasks.Add(item.ToString()!);
-        }
-
-        var json = JsonSerializer.Serialize(tasks);
+        string json = JsonSerializer.Serialize(tasks);
         File.WriteAllText("tasks.json", json);
     }
-    void LoadTasks() //Знаходження джсону і підгрузка тесків
+
+    void UpdateTasks(int i = 0)
     {
         if (File.Exists("tasks.json"))
         {
             var json = File.ReadAllText("tasks.json");
-            var tasks = JsonSerializer.Deserialize<List<string>>(json);
-
-            if (tasks != null)
+            tasks = JsonSerializer.Deserialize<List<Task>>(json);
+            TaskList.Items.Clear();
+            
+            foreach (Task task in tasks)
             {
-                foreach (var task in tasks)
-                {
-                    TaskList.Items.Add(task);
-                }
+                TaskList.Items.Add(task);
             }
+            TaskList.SelectedIndex = i;
         }
     }
     void LoadKeys()
@@ -196,11 +223,56 @@ public partial class MainWindow
         this.PreviewKeyDown += MainWindow_Controls; //Додаємо клавіші керування виділенням
         this.PreviewKeyDown += MainWindow_ChangeTask; //Додаємо клавішу змінити таск
         this.PreviewKeyDown += MainWindow_MarkTask; //Додаємо клавішу відмітити таск
+        this.PreviewKeyDown += MainWindow_AddDesription; //Додаємо клавішу відмітити таск
+    }
+    
+    private void ShowDescriptionWindow(string text)
+    {
+        // Create an instance of the secondary window and pass the text
+        var descriptionWindow = new DescriptionWindow(text);
+
+        // Get the position of the main window
+        var mainWindowLeft = this.Left;
+        var mainWindowTop = this.Top;
+
+        // Set the size and position of the secondary window
+        descriptionWindow.Width = 480;
+        descriptionWindow.Height = 480;
+        descriptionWindow.Left = mainWindowLeft + this.ActualWidth; // Position to the right of the main window
+        descriptionWindow.Top = mainWindowTop;
+
+        // Show the secondary window
+        descriptionWindow.Show();
     }
     
     protected override void OnClosed(EventArgs e) //Зберігання коли закривається програма
     {
         base.OnClosed(e);
         SaveTasks(); 
+    }
+}
+
+public class Task
+{
+    public string Title { get; set; }
+    public string Date { get; set; }
+    public bool IsCompleted { get; set; }
+    public string Description { get; set; }
+
+    public Task(string title, bool isCompleted = false, string date = "", string description = "")
+    {
+        if (date == "")
+        {
+            date += DateTime.Today.Date.ToString("dd/MM/yy");
+        }
+        Title = title;
+        IsCompleted = isCompleted;
+        Date = date;
+        Description = description;
+    }
+    
+    public override string ToString()
+    {
+        return Title + " - " + Date + " - " + IsCompleted;
     }
 }

@@ -4,6 +4,7 @@
         Title="InputDialog" Height="50" Width="300"
         WindowStyle="None"
         AllowsTransparency="True"
+        ResizeMode="NoResize"
         Background="Transparent"
         FontFamily="Consolas"
         WindowStartupLocation="CenterScreen">

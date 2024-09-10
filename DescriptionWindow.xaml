@@ -1,0 +1,34 @@
+<Window x:Class="TaskManager.DescriptionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DescriptionWindow" Height="480" Width="480"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Consolas">
+
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+    
+    <Border Background="White" CornerRadius="20">
+        <Grid Margin="10">
+            <TextBox x:Name="InputTextBox"
+                     VerticalAlignment="Stretch"
+                     HorizontalAlignment="Stretch"
+                     Margin="10" />
+        </Grid>
+    </Border>
+</Window>
