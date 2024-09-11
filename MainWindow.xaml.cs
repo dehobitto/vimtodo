@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -225,7 +224,7 @@ public partial class MainWindow
         this.PreviewKeyDown += MainWindow_MarkTask; //Додаємо клавішу відмітити таск
         this.PreviewKeyDown += MainWindow_AddDesription; //Додаємо клавішу відмітити таск
     }
-    
+
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
@@ -244,7 +243,8 @@ public class Task
     {
         if (date == "")
         {
-            date += DateTime.Today.Date.ToString("dd/MM/yy");
+            date += DateTime.Now.ToString("HH/mm ").Replace(".", ":");
+            date += DateTime.Now.ToString("dd/MM/yy").Replace(".", "/");
         }
         Title = title;
         IsCompleted = isCompleted;
@@ -254,6 +254,6 @@ public class Task
     
     public override string ToString()
     {
-        return Title + " - " + Date + " - " + IsCompleted;
+        return IsCompleted ? Title + " - DONE - " + Date  : Title + " - TODO - " + Date;
     }
 }
