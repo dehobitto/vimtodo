@@ -3,32 +3,36 @@ using System.Windows.Input;
 
 namespace TaskManager
 {
-    public partial class DescriptionWindow : Window
+    /// <summary>
+    /// Interaction logic for InputWindow.xaml
+    /// </summary>
+    public partial class InputWindow
     {
-        private const Key DescriptionWindowSave = Key.Enter;
+        private const Key InputDialogSave = Key.Enter;
         public string? InputText
         {
             get {return InputTextBox.Text;}
             set {InputTextBox.Text = value;}
         }
         
-        public DescriptionWindow(string text)
+        public InputWindow(string text = "", WindowStartupLocation windowStartupLocation = WindowStartupLocation.CenterScreen)
         {
             InitializeComponent();
+            WindowStartupLocation = windowStartupLocation;
             InputTextBox.Text = text;
-            Loaded += DescriptionWindow_Loaded; 
-            PreviewKeyDown += DescriptionWindow_Save; 
+            Loaded += InputDialog_Loaded; 
+            PreviewKeyDown += InputDialog_Save; 
         }
-        
-        private void DescriptionWindow_Loaded(object sender, RoutedEventArgs e)
+
+        private void InputDialog_Loaded(object sender, RoutedEventArgs e)
         {
             InputTextBox.Focus(); 
             InputTextBox.Select(InputTextBox.Text.Length, 0); 
         }
 
-        private void DescriptionWindow_Save(object sender, KeyEventArgs e)
+        private void InputDialog_Save(object sender, KeyEventArgs e)
         {
-            if (e.Key == DescriptionWindowSave)
+            if (e.Key == InputDialogSave)
             {
                 InputDialog_Close();
                 e.Handled = true;

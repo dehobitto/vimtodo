@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
+using TaskManager.Classes;
 
-namespace TaskManager;
+namespace TaskManager.Windows;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -12,45 +13,33 @@ public partial class MainWindow
 {
     //Бінди
     private const Key MainwindowAdd = Key.I;
-    private const Key MainwindowRemove = Key.D;
+    private const Key MainwindowRemove = Key.F4;
     private const Key MainwindowControlUp = Key.J;
     private const Key MainwindowControlDown = Key.K; 
     private const Key MainwindowChangetask = Key.C;
     private const Key MainwindowMarktask = Key.M;
-    private const Key MainwindowAddDescription = Key.E; 
+    private const Key MainwindowAddDescription = Key.D; 
     
-    List<Task>? tasks = new List<Task>();
+    List<Vimtodo>? _tasks = new();
 
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += (sender, e) => 
+        Loaded += (_, _) => 
         {
             UpdateTasks(); 
             this.Activate(); 
-            this.Focus(); 
-            
-            if (TaskList != null) 
-            {
-                TaskList.SelectedIndex = 0;
-            }
+            this.Focus();
         };
         LoadKeys();
     }
 
     void MainWindow_AddTask(object sender, KeyEventArgs e) 
     {
-        if (e.Key == MainwindowAdd) 
-        {
-            AddTask();
-            e.Handled = true;
-        }
-    }
-    void AddTask()
-    {
-        if (!Keyboard.FocusedElement.Equals(TaskList))
+        if (e.Key == MainwindowAdd && !Keyboard.FocusedElement.Equals(TaskList)) 
         {
             ShowInputDialog();
+            e.Handled = true;
         }
     }
     
@@ -65,7 +54,7 @@ public partial class MainWindow
     void RemoveTask()
     {
         int i = TaskList.SelectedIndex;
-        tasks.RemoveAt(i);
+        _tasks?.RemoveAt(i);
         SaveTasks();
         UpdateTasks(i);
             
@@ -108,16 +97,16 @@ public partial class MainWindow
     } 
     void ChangeTask()
     {
-        var inputDialog = new InputDialog();
+        var inputDialog = new InputWindow();
         int i = TaskList.SelectedIndex;
-        inputDialog.InputText = tasks[i].Title;
+        inputDialog.InputText = _tasks?[i].Title;
         
         if (inputDialog.ShowDialog() == true)
         {
             string? userInput = inputDialog.InputText;
             if (TaskList.SelectedItem != null)
             {
-                tasks[i].Title = (userInput);
+                _tasks![i].Title = (userInput!);
             }
             SaveTasks();
             UpdateTasks(i);
@@ -137,9 +126,9 @@ public partial class MainWindow
         int i = TaskList.SelectedIndex;
         if (TaskList.SelectedItem != null)
         {
-            Task task = (Task)TaskList.Items[i];
-            task.IsCompleted = !task.IsCompleted;
-            TaskList.Items[i] = task;
+            Vimtodo? vimtodo = (Vimtodo?)TaskList.Items[i];
+            vimtodo!.IsCompleted = !vimtodo.IsCompleted;
+            TaskList.Items[i] = vimtodo;
         }
         SaveTasks();
         UpdateTasks(i);
@@ -157,7 +146,7 @@ public partial class MainWindow
     void AddDescription()
     {
         int i = TaskList.SelectedIndex;
-        var descriptionWindow = new DescriptionWindow(tasks[i].Description);
+        var descriptionWindow = new DescriptionWindow(_tasks?[i].Description!);
 
         // Get the position of the main window
         var mainWindowLeft = this.Left;
@@ -174,7 +163,7 @@ public partial class MainWindow
             string? userInput = descriptionWindow.InputText;
             if (TaskList.SelectedItem != null)
             {
-                tasks[i].Description = (userInput);
+                _tasks![i].Description = (userInput);
             }
             SaveTasks();
             UpdateTasks(i);
@@ -183,20 +172,20 @@ public partial class MainWindow
     
     void ShowInputDialog() 
     {
-        var inputDialog = new InputDialog(); 
+        var inputDialog = new InputWindow(); 
         if (inputDialog.ShowDialog() == true)
         {
             string? userInput = inputDialog.InputText;
-            Task newTask = new Task(userInput);
-            tasks.Add(newTask);
-            TaskList.Items.Add(newTask);
+            Vimtodo newVimtodo = new Vimtodo(userInput!);
+            _tasks!.Add(newVimtodo);
+            TaskList.Items.Add(newVimtodo);
             SaveTasks(); 
         }
     }
     
     void SaveTasks()
     {
-        string json = JsonSerializer.Serialize(tasks);
+        string json = JsonSerializer.Serialize(_tasks);
         File.WriteAllText("tasks.json", json);
     }
 
@@ -205,10 +194,10 @@ public partial class MainWindow
         if (File.Exists("tasks.json"))
         {
             var json = File.ReadAllText("tasks.json");
-            tasks = JsonSerializer.Deserialize<List<Task>>(json);
+            _tasks = JsonSerializer.Deserialize<List<Vimtodo>>(json);
             TaskList.Items.Clear();
             
-            foreach (Task task in tasks)
+            foreach (Vimtodo task in _tasks!)
             {
                 TaskList.Items.Add(task);
             }
@@ -229,31 +218,5 @@ public partial class MainWindow
     {
         base.OnClosed(e);
         SaveTasks(); 
-    }
-}
-
-public class Task
-{
-    public string Title { get; set; }
-    public string Date { get; set; }
-    public bool IsCompleted { get; set; }
-    public string Description { get; set; }
-
-    public Task(string title, bool isCompleted = false, string date = "", string description = "")
-    {
-        if (date == "")
-        {
-            date += DateTime.Now.ToString("HH/mm ").Replace(".", ":");
-            date += DateTime.Now.ToString("dd/MM/yy").Replace(".", "/");
-        }
-        Title = title;
-        IsCompleted = isCompleted;
-        Date = date;
-        Description = description;
-    }
-    
-    public override string ToString()
-    {
-        return IsCompleted ? Title + " - DONE - " + Date  : Title + " - TODO - " + Date;
     }
 }
