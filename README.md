@@ -2,8 +2,13 @@
 
 Vimtodo is based on vim controls, and has mousefree controls.
 
-I - new task
-D - delete task
-M - mark/unmark task done
-C - change task
-J/k - Up/Down in the list, just like vim
+
+Controls:
+
+I - new task;
+F4 - delete task;
+M - mark/unmark task done;
+C - change task;
+J/K - Up/Down in the list, just like vim;
+D - show/add description;
+
